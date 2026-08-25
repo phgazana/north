@@ -1,0 +1,29 @@
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Node / React Native / Expo
+node_modules/
+.expo/
+dist/
+
+# Java / Spring / Maven / Gradle
+target/
+build/
+.gradle/
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
