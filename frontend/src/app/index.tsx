@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -9,13 +9,9 @@ import { useApp } from '@/context';
 
 export default function Welcome() {
   const router = useRouter();
-  const { user, sessionLoading } = useApp();
+  const { user } = useApp();
 
-  useEffect(() => {
-    if (!sessionLoading && user) router.replace('/home' as any);
-  }, [sessionLoading, user]);
-
-  if (sessionLoading) return null;
+  if (user) return null;
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />

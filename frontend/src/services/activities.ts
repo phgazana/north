@@ -147,12 +147,17 @@ export const activitiesService = {
     return mapActivity(result);
   },
 
-  async remove(id: string): Promise<void> {
-    await api<ActivityDTO>(`/api/activities/${id}/trash`, { method: 'POST' });
+  async remove(id: string): Promise<Activity> {
+    const result = await api<ActivityDTO>(`/api/activities/${id}/trash`, { method: 'POST' });
+    return mapActivity(result);
   },
 
   async restore(id: string): Promise<Activity> {
     const result = await api<ActivityDTO>(`/api/trash/${id}/restore`, { method: 'POST' });
     return mapActivity(result);
+  },
+
+  async deletePermanently(id: string): Promise<void> {
+    await api<void>(`/api/trash/${id}`, { method: 'DELETE' });
   },
 };

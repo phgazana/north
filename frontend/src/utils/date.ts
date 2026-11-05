@@ -4,8 +4,11 @@ export function parseBRDate(value?: string): Date | undefined {
   if (!value) return undefined;
   const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
   if (!match) return undefined;
-  const date = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
-  return Number.isNaN(date.getTime()) ? undefined : date;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : undefined;
 }
 
 export function monthKey(value?: string): string | undefined {

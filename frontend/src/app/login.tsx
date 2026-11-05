@@ -11,7 +11,7 @@ import { useApp } from '@/context';
 
 export default function Login() {
   const r = useRouter();
-  const { refreshSession } = useApp();
+  const { activateSession } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,12 +26,15 @@ export default function Login() {
     try {
       setLoading(true);
       setError('');
-      await authService.login({
+      const response = await authService.login({
         email: email.trim().toLowerCase(),
         password,
       });
-      await refreshSession();
-      r.replace('/home' as any);
+      const onboardingPending = response.user.onboardingCompleted === false;
+      let destination = response.user.landingScreen === 'activities' ? '/atividades' : '/home';
+      if (onboardingPending) destination = '/onboarding/1';
+      activateSession(response.user, onboardingPending);
+      r.replace(destination as any);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível entrar. Tente novamente.');
     } finally {

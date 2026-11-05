@@ -1,11 +1,14 @@
 import { api } from './api';
 import { tokenStorage } from './tokenStorage';
+import type { LandingScreen } from './preferences';
 
 export type User = {
   id: string;
   name: string;
   email: string;
   createdAt: string;
+  landingScreen?: LandingScreen;
+  onboardingCompleted?: boolean;
 };
 
 export type AuthResponse = {
@@ -51,6 +54,24 @@ export const authService = {
 
   async me(): Promise<User> {
     return api<User>('/api/me');
+  },
+
+  async updateProfile(data: { name: string }): Promise<User> {
+    return api<User>('/api/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updatePreferences(data: { landingScreen: LandingScreen }): Promise<User> {
+    return api<User>('/api/me/preferences', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async completeOnboarding(): Promise<User> {
+    return api<User>('/api/me/onboarding/complete', { method: 'POST' });
   },
 
   async logout(): Promise<void> {

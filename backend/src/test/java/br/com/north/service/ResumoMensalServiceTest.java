@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class ResumoMensalServiceTest {
@@ -55,7 +57,8 @@ class ResumoMensalServiceTest {
         plannedExit.setValorPlanejado(new BigDecimal("100.00"));
 
         MetaMensal goal = new MetaMensal(); goal.setAno((short) 2026); goal.setMes((short) 10); goal.setValor(new BigDecimal("1500.00"));
-        when(activities.findAllByUsuario_IdAndExcluidaEmIsNull(userId)).thenReturn(List.of(realizedEntry, realizedExit, plannedEntry, plannedExit));
+        when(activities.findActiveForPeriod(userId, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31)))
+            .thenReturn(List.of(realizedEntry, realizedExit, plannedEntry, plannedExit));
         when(goals.findByUsuario_IdAndAnoAndMes(userId, (short) 2026, (short) 10)).thenReturn(Optional.of(goal));
 
         var result = service.get(userId, 2026, 10);
@@ -75,7 +78,8 @@ class ResumoMensalServiceTest {
         Atividade unknown = activity(ActivityStatus.PENDENTE);
         unknown.setDataPrevista(LocalDate.of(2026, 10, 15));
         unknown.setImpactoFinanceiroPlanejado(FinancialImpactStatus.INDEFINIDO);
-        when(activities.findAllByUsuario_IdAndExcluidaEmIsNull(userId)).thenReturn(List.of(unknown));
+        when(activities.findActiveForPeriod(userId, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31)))
+            .thenReturn(List.of(unknown));
         when(goals.findByUsuario_IdAndAnoAndMes(userId, (short) 2026, (short) 10)).thenReturn(Optional.empty());
 
         var result = service.get(userId, 2026, 10);
@@ -86,6 +90,42 @@ class ResumoMensalServiceTest {
         assertNull(result.goalValue());
         assertNull(result.distanceToGoal());
         assertNull(result.realizedPercentage());
+    }
+
+    @Test void historyLoadsActivitiesAndGoalsOnceForTheWholeYear() {
+        when(activities.findActiveForPeriod(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31)))
+            .thenReturn(List.of());
+        when(goals.findAllByUsuario_IdAndAnoOrderByMesAsc(userId, (short) 2026)).thenReturn(List.of());
+
+        var result = service.history(userId, 2026);
+
+        assertEquals(12, result.size());
+        assertEquals(1, result.getFirst().month());
+        assertEquals(12, result.getLast().month());
+        verify(activities, times(1)).findActiveForPeriod(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31));
+        verify(goals, times(1)).findAllByUsuario_IdAndAnoOrderByMesAsc(userId, (short) 2026);
+    }
+
+    @Test void completedActivityIsListedInItsRealizationMonthRatherThanItsPlannedMonth() {
+        Atividade completed = activity(ActivityStatus.CONCLUIDA);
+        completed.setDataPrevista(LocalDate.of(2026, 2, 12));
+        completed.setDataRealizada(LocalDate.of(2026, 1, 29));
+        completed.setImpactoFinanceiroRealizado(FinancialImpactStatus.REALIZADO);
+        completed.setTipoFinanceiroRealizado(FinancialType.ENTRADA);
+        completed.setValorRealizado(new BigDecimal("425.00"));
+        when(activities.findActiveForPeriod(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31)))
+            .thenReturn(List.of(completed));
+        when(goals.findAllByUsuario_IdAndAnoOrderByMesAsc(userId, (short) 2026)).thenReturn(List.of());
+
+        var history = service.history(userId, 2026);
+        var january = history.getFirst();
+        var february = history.get(1);
+
+        assertEquals(new BigDecimal("425.00"), january.realizedEntries());
+        assertEquals(1, january.activities().size());
+        assertEquals("Atividade de teste", january.activities().getFirst().title());
+        assertEquals(LocalDate.of(2026, 1, 29), january.activities().getFirst().completedAt());
+        assertTrue(february.activities().isEmpty());
     }
 
     private Atividade activity(ActivityStatus status) {

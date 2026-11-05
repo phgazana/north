@@ -17,7 +17,7 @@ import { useApp } from '@/context';
 
 export default function Cadastro() {
   const r = useRouter();
-  const { refreshSession } = useApp();
+  const { activateSession } = useApp();
 
   const [accepted, setAccepted] = useState(false);
   const [name, setName] = useState('');
@@ -78,12 +78,12 @@ export default function Cadastro() {
     try {
       setLoading(true);
 
-      await authService.register({
+      const response = await authService.register({
         name: cleanName,
         email: cleanEmail,
         password,
       });
-      await refreshSession();
+      activateSession(response.user, true);
 
       r.replace('/onboarding/1' as any);
     } catch (error) {
@@ -154,8 +154,8 @@ export default function Cadastro() {
 
           <Text style={styles.termText}>
             Li e concordo com os{' '}
-            <Text style={styles.link}>Termos de Uso</Text> e a{' '}
-            <Text style={styles.link}>Política de Privacidade</Text>.
+            <Text style={styles.link} onPress={() => r.push('/conta/terms' as any)}>Termos de Uso</Text> e a{' '}
+            <Text style={styles.link} onPress={() => r.push('/conta/privacy' as any)}>Política de Privacidade</Text>.
           </Text>
         </Pressable>
 

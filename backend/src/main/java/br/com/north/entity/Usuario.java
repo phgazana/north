@@ -16,6 +16,10 @@ public class Usuario {
     private String email;
     @Column(name = "senha_hash", nullable = false, length = 100)
     private String senhaHash;
+    @Column(name = "landing_screen", nullable = false, length = 16)
+    private String landingScreen = "home";
+    @Column(name = "onboarding_completed", nullable = false)
+    private boolean onboardingCompleted;
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
@@ -30,6 +34,10 @@ public class Usuario {
     public void setEmail(String email) { this.email = email; }
     public String getSenhaHash() { return senhaHash; }
     public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }
+    public String getLandingScreen() { return landingScreen; }
+    public void setLandingScreen(String landingScreen) { this.landingScreen = landingScreen; }
+    public boolean isOnboardingCompleted() { return onboardingCompleted; }
+    public void setOnboardingCompleted(boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public OffsetDateTime getUpdatedAt() { return updatedAt; }
 }

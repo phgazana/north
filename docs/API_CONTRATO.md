@@ -9,6 +9,7 @@ Base local: `http://localhost:8080/api`. Datas são strings ISO 8601: `YYYY-MM-D
 {"name":"Pessoa Usuária","email":"pessoa@example.com","password":"senha-com-8-ou-mais"}
 ```
 Retorna `accessToken`, `tokenType`, `expiresInSeconds` e `user`.
+O objeto `user` inclui `id`, `name`, `email`, `createdAt`, `landingScreen` (`home` ou `activities`) e `onboardingCompleted`.
 
 ### `POST /auth/login`
 ```json
@@ -17,8 +18,12 @@ Retorna `accessToken`, `tokenType`, `expiresInSeconds` e `user`.
 Todos os endpoints abaixo exigem `Authorization: Bearer <accessToken>`.
 
 ## Conta
-- `GET /me`: consultar nome/e-mail/id.
+- `GET /me`: consultar nome/e-mail/id e preferências persistidas da conta.
 - `PATCH /me`: `{ "name": "Nome atualizado" }`.
+- `PATCH /me/preferences`: `{ "landingScreen": "activities" }` para salvar a tela inicial da conta (`home` ou `activities`).
+- `POST /me/onboarding/complete`: marca o onboarding da conta como concluído; operação idempotente.
+
+Contas existentes são consideradas com onboarding concluído na migração. Contas novas iniciam com `onboardingCompleted: false`; a conclusão e a preferência são persistidas por usuário autenticado.
 
 ## Atividades
 - `GET /activities`: filtros opcionais `status`, `from`, `to`, `type`, `priority`, `favorite`, `search`.

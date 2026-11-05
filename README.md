@@ -56,6 +56,8 @@ npm run start
 
 O cliente usa `http://localhost:8080` na web e `http://10.0.2.2:8080` no Android Emulator. Configure `EXPO_PUBLIC_API_URL` para outros ambientes/dispositivos. Esse valor é uma URL pública, nunca coloque segredos nela.
 
+Para publicar a Web no Render com suporte a URLs diretas de rotas dinâmicas, siga [`docs/DEPLOY_WEB_RENDER.md`](docs/DEPLOY_WEB_RENDER.md) e confirme o rewrite no serviço.
+
 ## Funcionalidades presentes
 
 O frontend possui cadastro, login, sessão persistida com armazenamento seguro, conta, atividades (criar, editar, duplicar, concluir, reabrir, cancelar, favoritos e prioridades), lixeira/restauração, metas mensais, histórico e resumos. A API fornece autenticação JWT, isolamento por usuário, operações de atividades e lixeira, metas e resumo mensal. Consulte `docs/API_CONTRATO.md`.

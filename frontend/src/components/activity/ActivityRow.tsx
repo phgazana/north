@@ -25,6 +25,7 @@ export function ActivityRow({ item, onPress, onQuickComplete, onDelete, onMenu, 
 
   const value = item.status === 'CONCLUIDA' ? item.realizedValue : item.plannedValue;
   const type = item.status === 'CONCLUIDA' ? item.realizedType : item.plannedType;
+  const displayDate = history && item.status === 'CONCLUIDA' ? item.completedAt ?? item.date : item.date;
   return (
     <View style={styles.wrap}>
       {swipeable && (
@@ -43,7 +44,7 @@ export function ActivityRow({ item, onPress, onQuickComplete, onDelete, onMenu, 
           <View style={styles.iconBox}><ActivityIcon icon={item.icon} size={18} color={colors.navy} /></View>
           <View style={styles.info}>
             <Text style={[styles.title, item.status === 'CONCLUIDA' && styles.strike]} numberOfLines={1}>{item.title}</Text>
-            <Text style={styles.meta}>{item.date === todayBR() ? 'Hoje' : item.date ?? 'Sem data'}{item.time ? ` • ${item.time}` : ''}</Text>
+            <Text style={styles.meta}>{displayDate === todayBR() ? 'Hoje' : displayDate ?? 'Sem data'}{item.time ? ` • ${item.time}` : ''}</Text>
           </View>
           {value !== undefined && <Text style={[styles.value, { color: type === 'ENTRADA' ? colors.success : type === 'SAIDA' ? colors.error : colors.navy }]}>{money(value)}</Text>}
           {item.priority && <Icon name="flag" size={16} color={colors.blue} />}

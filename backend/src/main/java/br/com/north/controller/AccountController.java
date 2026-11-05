@@ -1,6 +1,7 @@
 package br.com.north.controller;
 
 import br.com.north.dto.auth.UpdateProfileRequest;
+import br.com.north.dto.auth.UpdatePreferencesRequest;
 import br.com.north.dto.auth.UserResponse;
 import br.com.north.security.UserPrincipal;
 import br.com.north.service.AccountService;
@@ -16,5 +17,12 @@ public class AccountController {
     @GetMapping public UserResponse get(@AuthenticationPrincipal UserPrincipal user) { return service.get(user.getId()); }
     @PatchMapping public UserResponse update(@AuthenticationPrincipal UserPrincipal user, @Valid @RequestBody UpdateProfileRequest request) {
         return service.update(user.getId(), request);
+    }
+    @PatchMapping("/preferences") public UserResponse updatePreferences(@AuthenticationPrincipal UserPrincipal user,
+                                                                            @Valid @RequestBody UpdatePreferencesRequest request) {
+        return service.updatePreferences(user.getId(), request);
+    }
+    @PostMapping("/onboarding/complete") public UserResponse completeOnboarding(@AuthenticationPrincipal UserPrincipal user) {
+        return service.completeOnboarding(user.getId());
     }
 }

@@ -1,6 +1,7 @@
 package br.com.north.service;
 
 import br.com.north.dto.auth.UpdateProfileRequest;
+import br.com.north.dto.auth.UpdatePreferencesRequest;
 import br.com.north.dto.auth.UserResponse;
 import br.com.north.exception.ApiException;
 import br.com.north.repository.UsuarioRepository;
@@ -18,5 +19,19 @@ public class AccountService {
     public UserResponse update(UUID id, UpdateProfileRequest request) {
         var user = users.findById(id).orElseThrow(() -> ApiException.notFound("Usuário não encontrado."));
         user.setNome(request.name().trim()); return UserResponse.from(users.save(user));
+    }
+
+    @Transactional
+    public UserResponse updatePreferences(UUID id, UpdatePreferencesRequest request) {
+        var user = users.findById(id).orElseThrow(() -> ApiException.notFound("Usuário não encontrado."));
+        user.setLandingScreen(request.landingScreen());
+        return UserResponse.from(users.save(user));
+    }
+
+    @Transactional
+    public UserResponse completeOnboarding(UUID id) {
+        var user = users.findById(id).orElseThrow(() -> ApiException.notFound("Usuário não encontrado."));
+        user.setOnboardingCompleted(true);
+        return UserResponse.from(users.save(user));
     }
 }

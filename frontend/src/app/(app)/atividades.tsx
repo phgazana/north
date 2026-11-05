@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
+import { ActivityIndicator, ScrollView, View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors, typography } from '@/theme';
@@ -11,12 +11,13 @@ import { ActivityActionSheet } from '@/components/feedback/ActivityActionSheet';
 import { AppDialog } from '@/components/feedback/AppDialog';
 import { useApp } from '@/context';
 import { parseBRDate, monthKey, todayBR } from '@/utils/date';
+import { Button } from '@/components/ui/Button';
 
 const toDate = (s?: string) => parseBRDate(s)?.getTime();
 
 export default function Activities() {
   const router = useRouter();
-  const { activities, completeActivity, deleteActivity, toggleFavorite, togglePriority, duplicateActivity, reopenActivity, cancelActivity } = useApp();
+  const { activities, completeActivity, deleteActivity, toggleFavorite, togglePriority, duplicateActivity, reopenActivity, cancelActivity, appDataLoading, appDataError, refreshAppData } = useApp();
   const [tab, setTab] = useState<'PENDENTE'|'CONCLUIDA'|'CANCELADA'>('PENDENTE');
   const [query, setQuery] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -25,6 +26,7 @@ export default function Activities() {
   const [deleteId, setDeleteId] = useState<string|null>(null);
   const [cancelId, setCancelId] = useState<string|null>(null);
   const [menuId, setMenuId] = useState<string|null>(null);
+  const [operationError, setOperationError] = useState('');
 
   const list = useMemo(() => {
     const nowDate = new Date(); nowDate.setHours(0, 0, 0, 0);
@@ -56,10 +58,14 @@ export default function Activities() {
   const deleteItem = activities.find(a=>a.id===deleteId);
   const cancelItem = activities.find(a=>a.id===cancelId);
 
+  if (appDataLoading) return <SafeAreaView style={styles.safe}><View style={styles.loadState}><ActivityIndicator color={colors.blue}/><Text style={styles.emptyText}>Carregando atividades...</Text></View><BottomNav/></SafeAreaView>;
+  if (appDataError) return <SafeAreaView style={styles.safe}><View style={styles.loadState}><Text style={styles.operationError}>{appDataError}</Text><Button title="Tentar novamente" variant="secondary" size="small" onPress={() => void refreshAppData()}/></View><BottomNav/></SafeAreaView>;
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Atividades</Text>
+        {operationError ? <Pressable onPress={() => setOperationError('')}><Text style={styles.operationError}>{operationError}  ×</Text></Pressable> : null}
         <View style={styles.searchRow}>
           <View style={styles.search}><Icon name="search" size={18} color={colors.gray500}/><TextInput value={query} onChangeText={setQuery} placeholder="Buscar atividades..." placeholderTextColor={colors.gray500} style={styles.searchInput}/>{query&&<Pressable onPress={()=>setQuery('')}><Icon name="close" size={17} color={colors.gray500}/></Pressable>}</View>
           <Pressable style={styles.filterBtn} onPress={()=>setFilterOpen(true)}><Icon name="filter" size={20}/></Pressable>
@@ -71,11 +77,11 @@ export default function Activities() {
       <Pressable style={styles.fab} onPress={()=>router.push('/atividade/nova' as any)}><Icon name="plus" size={24} color={colors.white}/></Pressable>
       <BottomNav/>
       <FilterSheet visible={filterOpen} onClose={()=>setFilterOpen(false)} initial={filters} onApply={f=>{setFilters(f);if(f.status!=='Todas'){setTab((({Pendentes:'PENDENTE',Concluídas:'CONCLUIDA',Canceladas:'CANCELADA'} as any)[f.status])??tab)}setFilterOpen(false)}}/>
-      <ActivityActionSheet visible={!!menuItem} activity={menuItem} onClose={()=>setMenuId(null)} onFavorite={()=>{if(menuItem)toggleFavorite(menuItem.id);setMenuId(null)}} onTogglePriority={()=>{if(menuItem)togglePriority(menuItem.id);setMenuId(null)}} onDuplicate={async()=>{if(menuItem){const n=await duplicateActivity(menuItem.id);setMenuId(null);if(n)router.push(`/atividade/${n.id}` as any)}}} onEdit={()=>{if(menuItem)router.push(`/atividade/editar?id=${menuItem.id}` as any);setMenuId(null)}} onDelete={()=>{setDeleteId(menuItem?.id??null);setMenuId(null)}} onCancel={()=>{setCancelId(menuItem?.id??null);setMenuId(null)}} onReopen={menuItem?.status==='CANCELADA'?()=>{if(menuItem)reopenActivity(menuItem.id);setMenuId(null)}:undefined}/>
-      <AppDialog visible={!!completeItem} title="Concluir atividade?" description="A atividade será marcada como realizada e seguirá para o histórico do mês." confirmLabel="Concluir" tone="info" onCancel={()=>setCompleteId(null)} onConfirm={()=>{if(completeItem) completeActivity(completeItem.id); setCompleteId(null)}}/>
-      <AppDialog visible={!!cancelItem} title="Cancelar atividade?" description="A atividade continuará registrada como cancelada e poderá ser reaberta depois." confirmLabel="Cancelar atividade" tone="info" onCancel={()=>setCancelId(null)} onConfirm={()=>{if(cancelItem)cancelActivity(cancelItem.id);setCancelId(null) }}/>
-      <AppDialog visible={!!deleteItem} title="Mover para a lixeira?" description="A atividade ficará fora das listas e poderá ser restaurada dentro do prazo de retenção." onCancel={()=>setDeleteId(null)} confirmLabel="Mover para a lixeira" onConfirm={()=>{if(deleteItem) deleteActivity(deleteItem.id); setDeleteId(null)}}/>
+      <ActivityActionSheet visible={!!menuItem} activity={menuItem} onClose={()=>setMenuId(null)} onFavorite={()=>{if(menuItem)void toggleFavorite(menuItem.id).catch(e=>setOperationError(e instanceof Error?e.message:'Não foi possível atualizar favorito.'));setMenuId(null)}} onTogglePriority={()=>{if(menuItem)void togglePriority(menuItem.id).catch(e=>setOperationError(e instanceof Error?e.message:'Não foi possível atualizar prioridade.'));setMenuId(null)}} onDuplicate={async()=>{if(menuItem){try{const n=await duplicateActivity(menuItem.id);setMenuId(null);if(n)router.push(`/atividade/${n.id}` as any)}catch(e){setOperationError(e instanceof Error?e.message:'Não foi possível duplicar.')}}}} onEdit={()=>{if(menuItem)router.push(`/atividade/editar?id=${menuItem.id}` as any);setMenuId(null)}} onDelete={()=>{setDeleteId(menuItem?.id??null);setMenuId(null)}} onCancel={()=>{setCancelId(menuItem?.id??null);setMenuId(null)}} onReopen={menuItem?.status==='CANCELADA'?()=>{if(menuItem)void reopenActivity(menuItem.id).catch(e=>setOperationError(e instanceof Error?e.message:'Não foi possível reabrir.'));setMenuId(null)}:undefined}/>
+      <AppDialog visible={!!completeItem} title="Concluir atividade?" description="A atividade será marcada como realizada e seguirá para o histórico do mês." confirmLabel="Concluir" tone="info" onCancel={()=>setCompleteId(null)} onConfirm={()=>{if(completeItem)void completeActivity(completeItem.id).catch(e=>setOperationError(e instanceof Error?e.message:'Não foi possível concluir.')); setCompleteId(null)}}/>
+      <AppDialog visible={!!cancelItem} title="Cancelar atividade?" description="A atividade continuará registrada como cancelada e poderá ser reaberta depois." confirmLabel="Cancelar atividade" tone="info" onCancel={()=>setCancelId(null)} onConfirm={()=>{if(cancelItem)void cancelActivity(cancelItem.id).catch(e=>setOperationError(e instanceof Error?e.message:'Não foi possível cancelar.'));setCancelId(null) }}/>
+      <AppDialog visible={!!deleteItem} title="Mover para a lixeira?" description="A atividade ficará fora das listas e poderá ser restaurada dentro do prazo de retenção." onCancel={()=>setDeleteId(null)} confirmLabel="Mover para a lixeira" onConfirm={()=>{if(deleteItem)void deleteActivity(deleteItem.id).catch(e=>setOperationError(e instanceof Error?e.message:'Não foi possível excluir.')); setDeleteId(null)}}/>
     </SafeAreaView>
   );
 }
-const styles=StyleSheet.create({safe:{flex:1,backgroundColor:colors.white},content:{padding:20,paddingBottom:110},title:{...typography.h1,color:colors.navy,marginBottom:15},searchRow:{flexDirection:'row',gap:8},search:{height:44,borderRadius:8,backgroundColor:colors.gray100,flex:1,flexDirection:'row',alignItems:'center',paddingHorizontal:12,gap:8},searchInput:{flex:1,...typography.body2,color:colors.gray900,paddingVertical:0},filterBtn:{width:44,height:44,borderRadius:8,borderWidth:1,borderColor:colors.gray200,alignItems:'center',justifyContent:'center'},tabs:{flexDirection:'row',marginTop:13,borderBottomWidth:1,borderBottomColor:colors.gray200},tab:{flex:1,alignItems:'center',paddingVertical:12,position:'relative'},tabText:{...typography.body2Medium,color:colors.gray500},tabActive:{color:colors.navy},underline:{position:'absolute',left:12,right:12,bottom:-1,height:2,backgroundColor:colors.orange},group:{marginTop:16},groupHead:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:7},groupTitle:{...typography.label,color:colors.navy},count:{...typography.caption,color:colors.white,backgroundColor:colors.orange,borderRadius:10,paddingHorizontal:6,paddingVertical:2},empty:{alignItems:'center',paddingTop:80,paddingHorizontal:35},emptyTitle:{...typography.h2,color:colors.navy,marginTop:14,fontSize:18},emptyText:{...typography.body2,color:colors.gray700,textAlign:'center',marginTop:5},emptyBtn:{marginTop:16,borderWidth:1,borderColor:colors.blue,borderRadius:8,paddingHorizontal:16,paddingVertical:10},emptyBtnText:{...typography.label,color:colors.blue},fab:{position:'absolute',right:22,bottom:82,width:54,height:54,borderRadius:27,backgroundColor:colors.orange,alignItems:'center',justifyContent:'center',zIndex:3}});
+const styles=StyleSheet.create({safe:{flex:1,backgroundColor:colors.white},content:{width:'100%',maxWidth:820,alignSelf:'center',padding:20,paddingBottom:110},loadState:{flex:1,alignItems:'center',justifyContent:'center',gap:14,padding:24},operationError:{...typography.caption,color:colors.error,marginBottom:10},title:{...typography.h1,color:colors.navy,marginBottom:15},searchRow:{flexDirection:'row',gap:8},search:{height:44,borderRadius:8,backgroundColor:colors.gray100,flex:1,flexDirection:'row',alignItems:'center',paddingHorizontal:12,gap:8},searchInput:{flex:1,...typography.body2,color:colors.gray900,paddingVertical:0},filterBtn:{width:44,height:44,borderRadius:8,borderWidth:1,borderColor:colors.gray200,alignItems:'center',justifyContent:'center'},tabs:{flexDirection:'row',marginTop:13,borderBottomWidth:1,borderBottomColor:colors.gray200},tab:{flex:1,alignItems:'center',paddingVertical:12,position:'relative'},tabText:{...typography.body2Medium,color:colors.gray500},tabActive:{color:colors.navy},underline:{position:'absolute',left:12,right:12,bottom:-1,height:2,backgroundColor:colors.orange},group:{marginTop:16},groupHead:{flexDirection:'row',alignItems:'center',gap:6,marginBottom:7},groupTitle:{...typography.label,color:colors.navy},count:{...typography.caption,color:colors.white,backgroundColor:colors.orange,borderRadius:10,paddingHorizontal:6,paddingVertical:2},empty:{alignItems:'center',paddingTop:80,paddingHorizontal:35},emptyTitle:{...typography.h2,color:colors.navy,marginTop:14,fontSize:18},emptyText:{...typography.body2,color:colors.gray700,textAlign:'center',marginTop:5},emptyBtn:{marginTop:16,borderWidth:1,borderColor:colors.blue,borderRadius:8,paddingHorizontal:16,paddingVertical:10},emptyBtnText:{...typography.label,color:colors.blue},fab:{position:'absolute',right:22,bottom:82,width:54,height:54,borderRadius:27,backgroundColor:colors.orange,alignItems:'center',justifyContent:'center',zIndex:3}});
