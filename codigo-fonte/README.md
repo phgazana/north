@@ -1,12 +1,3 @@
-# Código-fonte
+# Código-fonte legado
 
-Esta pasta contém o código-fonte do projeto NORTH.
-
-## Estrutura
-
-- `mobile/` — aplicativo mobile desenvolvido com React Native, Expo e TypeScript.
-- `backend/` — API e regras de negócio desenvolvidas em Java com Spring Boot.
-
-## Organização
-
-O projeto utiliza uma estrutura de monorepo, mantendo o aplicativo mobile e o backend no mesmo repositório.
+O layout integrado atual está na raiz do repositório: `frontend/` contém o aplicativo Expo e `backend/` contém a API Spring Boot. Esta pasta foi mantida por compatibilidade com a organização documental anterior; não contém uma cópia do código ativo.

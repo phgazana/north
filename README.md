@@ -1,89 +1,67 @@
 # NORTH
 
-> Aplicativo de organização pessoal que conecta atividades, planejamento financeiro e metas mensais.
+Aplicativo para organizar atividades e acompanhar seus impactos financeiros nas metas mensais. Este repositório reúne o aplicativo mobile, a API, a configuração do PostgreSQL e os documentos de produto e análise.
 
-**NORTH** é um projeto acadêmico desenvolvido pela **NODUS** para a disciplina de **Análise e Projeto de Sistemas II**.
+## Estrutura
 
-A proposta do aplicativo é permitir que o usuário organize suas atividades pessoais e profissionais e compreenda como aquilo que já aconteceu e o que ainda está planejado pode impactar seus objetivos financeiros mensais.
+- `frontend/` — aplicativo React Native com Expo, TypeScript e Expo Router, integrado à API.
+- `backend/` — API REST em Java 21, Spring Boot, Spring Security, JPA e Flyway.
+- `banco-de-dados/` — migração SQL de referência; a migração executada pelo Flyway fica em `backend/src/main/resources/db/migration/`.
+- `compose.yaml` — PostgreSQL para desenvolvimento local.
+- `docs/` — contrato da API, decisões de domínio, roteiro de execução e integração frontend.
+- `documentacao/` — PRD, requisitos, diagramas, blueprint de UX, wireframes, design system e protótipos legados ainda úteis como referência.
+- `apresentacao/`, `prototipos/` e `testes/` — materiais acadêmicos e de apoio existentes.
 
----
+## Requisitos
 
-## Status do projeto
+- Java 21 e Maven
+- Node.js e npm
+- Docker Compose (ou PostgreSQL instalado localmente)
 
-**Em desenvolvimento — fase de prototipação e preparação para implementação.**
+## Configuração local
 
-O projeto já possui sua documentação de análise e projeto, modelos UML, modelagem do banco de dados, definição de requisitos, casos de uso, wireframes e protótipos de alta fidelidade.
+Crie `.env` a partir do exemplo e substitua os valores de configuração:
 
-A implementação do sistema será realizada nas próximas etapas do projeto.
+```bash
+cp .env.example .env
+```
 
----
+Defina `POSTGRES_PASSWORD`, `DB_PASSWORD` e `JWT_SECRET`. O segredo JWT deve ser Base64 de pelo menos 32 bytes aleatórios. Gere um com `openssl rand -base64 32`. Não versione `.env`.
 
-## Sobre o projeto
+Inicie o banco:
 
-O NORTH centraliza atividades, entradas, saídas e metas em uma única experiência.
+```bash
+docker compose up -d postgres
+```
 
-O sistema permite que uma atividade possua impacto financeiro opcional, possibilitando acompanhar:
+Inicie a API:
 
-- atividades pessoais e profissionais;
-- prazos e prioridades;
-- entradas e saídas financeiras;
-- valores previstos e realizados;
-- meta financeira mensal;
-- resultado atual;
-- projeção financeira do mês.
+```bash
+cd backend
+set -a
+source ../.env
+set +a
+mvn spring-boot:run
+```
 
-O objetivo não é substituir uma aplicação bancária, mas oferecer uma visão simples da relação entre **planejamento, rotina e objetivos**.
+A API fica em `http://localhost:8080`; a verificação de saúde está em `/actuator/health`. Flyway aplica a migração inicial no primeiro início.
 
----
+Inicie o aplicativo em outro terminal:
 
-## Principais conceitos
+```bash
+cd frontend
+npm install
+npm run start
+```
 
-O NORTH foi projetado a partir da relação entre:
+O cliente usa `http://localhost:8080` na web e `http://10.0.2.2:8080` no Android Emulator. Configure `EXPO_PUBLIC_API_URL` para outros ambientes/dispositivos. Esse valor é uma URL pública, nunca coloque segredos nela.
 
-**Atividade → Planejamento → Realização → Resultado → Evolução**
+Para publicar a Web no Render com suporte a URLs diretas de rotas dinâmicas, siga [`docs/DEPLOY_WEB_RENDER.md`](docs/DEPLOY_WEB_RENDER.md) e confirme o rewrite no serviço.
 
-Uma atividade pode existir sem impacto financeiro ou possuir valores planejados e realizados. Dessa forma, o sistema permite acompanhar tanto a organização da rotina quanto seus possíveis impactos financeiros.
+## Funcionalidades presentes
 
----
+O frontend possui cadastro, login, sessão persistida com armazenamento seguro, conta, atividades (criar, editar, duplicar, concluir, reabrir, cancelar, favoritos e prioridades), lixeira/restauração, metas mensais, histórico e resumos. A API fornece autenticação JWT, isolamento por usuário, operações de atividades e lixeira, metas e resumo mensal. Consulte `docs/API_CONTRATO.md`.
 
-## Tecnologias
+## Verificações
 
-### Mobile
-
-- React Native
-- Expo
-- TypeScript
-- Expo Router
-
-### Backend
-
-- Java
-- Spring Boot
-
-### Banco de dados
-
-- PostgreSQL
-
-### Outros
-
-- API REST
-- JSON
-- Git
-- GitHub
-
----
-
-## Estrutura do repositório
-
-```text
-north/
-├── apresentacao/       # Materiais das apresentações acadêmicas
-├── banco-de-dados/     # Modelos e scripts do banco de dados
-├── codigo-fonte/       # Aplicativo mobile e backend
-│   ├── mobile/
-│   └── backend/
-├── documentacao/       # Documentação de análise e projeto
-├── prototipos/         # Wireframes e protótipos das interfaces
-├── testes/             # Planos, casos e evidências de testes
-├── .gitignore
-└── README.md
+Na raiz, `mvn -f backend/pom.xml test` executa os testes do backend. Para verificar tipos do frontend, use `cd frontend && npx tsc --noEmit`; `npm run lint` está listado no projeto, sujeito à configuração de lint disponível. O roteiro detalhado está em `docs/ROTEIRO_EXECUCAO.md`.

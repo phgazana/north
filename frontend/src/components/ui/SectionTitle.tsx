@@ -1,0 +1,3 @@
+import React from 'react'; import {View,Text,Pressable,StyleSheet} from 'react-native'; import {colors,typography} from '@/theme';
+export function SectionTitle({title,action,onPress}:{title:string;action?:string;onPress?:()=>void}){return <View style={styles.row}><Text style={styles.title}>{title}</Text>{action&&<Pressable onPress={onPress}><Text style={styles.action}>{action}</Text></Pressable>}</View>}
+const styles=StyleSheet.create({row:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:8},title:{...typography.label,color:colors.navy,fontSize:13},action:{...typography.body2,color:colors.blue,fontFamily:'Inter-SemiBold'}});

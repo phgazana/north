@@ -1,0 +1,3 @@
+import React from 'react'; import {Text,View,StyleSheet} from 'react-native'; import {colors,typography,radius} from '@/theme';
+export function StatusChip({label,tone='neutral'}:{label:string;tone?:'neutral'|'success'|'error'|'warning'|'info'}){const s={neutral:[colors.gray100,colors.gray700],success:[colors.successSoft,colors.success],error:[colors.errorSoft,colors.error],warning:[colors.warningSoft,colors.warning],info:[colors.infoSoft,colors.blue]}[tone];return <View style={[styles.chip,{backgroundColor:s[0]}]}><Text style={[styles.text,{color:s[1]}]}>{label}</Text></View>}
+const styles=StyleSheet.create({chip:{alignSelf:'flex-start',paddingHorizontal:10,paddingVertical:5,borderRadius:radius.pill},text:{...typography.label,fontSize:11}});

@@ -81,6 +81,4 @@ Protótipos de alta fidelidade utilizados como referência visual para a futura 
 
 ## Relação com o desenvolvimento
 
-Os artefatos desta pasta servem como base para as etapas de implementação, testes e evolução do NORTH.
-
-A documentação deve permanecer alinhada aos requisitos e às decisões de produto estabelecidas durante o desenvolvimento.
+Os artefatos desta pasta registram a análise, requisitos e propostas visuais que orientaram o NORTH. O projeto já possui uma implementação fullstack ativa em `../frontend/` e `../backend/`; alguns detalhes dos documentos podem anteceder decisões e funcionalidades atuais. Para comportamento implementado, consulte o código e `../docs/` (contrato da API, decisões de domínio, execução e integração). Preserve estes documentos como referência histórica e atualize-os quando uma revisão de produto exigir.
