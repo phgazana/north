@@ -1,29 +1,35 @@
-# IntelliJ
-.idea/
-*.iml
-
-# VS Code
-.vscode/
-
-# Sistema operacional
-.DS_Store
-Thumbs.db
-
-# Node / React Native / Expo
-node_modules/
-.expo/
-dist/
-
-# Java / Spring / Maven / Gradle
-target/
-build/
-.gradle/
-
-# Variáveis de ambiente
+# Environment and credentials
 .env
 .env.*
 !.env.example
+*.local
 
-# Logs
+# Java / Maven / Gradle
+**/target/
+**/build/
+.gradle/
+
+# Node / Expo / React Native
+**/node_modules/
+**/.expo/
+**/dist/
+**/web-build/
+**/coverage/
+**/*.tsbuildinfo
+frontend/expo-env.d.ts
+frontend/ios/
+frontend/android/
+
+# IDEs and operating systems
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
 *.log
+*.tmp
 
+# Backup files
+*.bak
+*.backup

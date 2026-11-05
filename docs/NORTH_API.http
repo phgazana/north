@@ -1,0 +1,51 @@
+### Health (público)
+GET http://localhost:8080/actuator/health
+
+### Registrar usuário (copie accessToken da resposta para as requisições protegidas)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Pessoa Usuária",
+  "email": "pessoa@example.com",
+  "password": "trocar-esta-senha"
+}
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "pessoa@example.com",
+  "password": "trocar-esta-senha"
+}
+
+### Substitua pelo token real retornado no login
+@token = COLE_O_ACCESS_TOKEN_AQUI
+
+### Criar atividade com impacto planejado
+POST http://localhost:8080/api/activities
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Mercado",
+  "icon": "market",
+  "date": "2026-10-28",
+  "time": "10:00:00",
+  "priority": false,
+  "favorite": false,
+  "plannedImpactStatus": "PLANEJADO",
+  "plannedType": "SAIDA",
+  "plannedValue": 150.00,
+  "description": "Comprar itens da semana",
+  "observation": "Comparar preços"
+}
+
+### Listar atividades pendentes
+GET http://localhost:8080/api/activities?status=PENDENTE
+Authorization: Bearer {{token}}
+
+### Resumo mensal
+GET http://localhost:8080/api/monthly-summary?year=2026&month=10
+Authorization: Bearer {{token}}
