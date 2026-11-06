@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { useApp } from '@/context';
+import { authService } from '@/services/auth';
+import { PasswordChangeErrors, submitPasswordChange } from '@/utils/passwordChange';
 import { colors, typography } from '@/theme';
 
 const titles: Record<string, string> = {
@@ -18,12 +20,17 @@ export default function AccountPage() {
   const params = useLocalSearchParams<{ page: string }>();
   const page = String(params.page ?? 'help');
   const title = titles[page] ?? titles.help;
-  const { user, updateProfileName, landingScreen, setLandingScreen } = useApp();
+  const { user, updateProfileName, landingScreen, setLandingScreen, logout } = useApp();
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [openQuestion, setOpenQuestion] = useState<number | null>(0);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [passwordErrors, setPasswordErrors] = useState<PasswordChangeErrors>({});
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => { setName(user?.name ?? ''); }, [user?.name]);
 
@@ -46,6 +53,29 @@ export default function AccountPage() {
     } catch {
       setError('Não foi possível salvar a preferência na sua conta.');
     }
+  }
+
+  async function changePassword() {
+    setError(''); setSuccess(''); setPasswordErrors({}); setChangingPassword(true);
+    try {
+      const result = await submitPasswordChange(
+        { currentPassword, newPassword, confirmation },
+        {
+          changePassword: authService.changePassword,
+          endSession: async () => { await logout(); },
+          redirectToLogin: () => router.replace({ pathname: '/login', params: { passwordChanged: '1' } } as any),
+        },
+      );
+      if (!result.ok) {
+        if (result.validation) setPasswordErrors(result.validation);
+        else setError(result.error);
+        return;
+      }
+      setCurrentPassword(''); setNewPassword(''); setConfirmation('');
+      if (result.cleanupFailed) {
+        setSuccess('Senha alterada. Entre novamente; sua sessão anterior já foi invalidada.');
+      }
+    } finally { setChangingPassword(false); }
   }
 
   return (
@@ -71,11 +101,14 @@ export default function AccountPage() {
 
           {page === 'password' && <>
             <View style={styles.card}>
-              <View style={styles.noticeIcon}><Icon name="information" size={20} color={colors.blue} /></View>
-              <Text style={styles.sectionTitle}>Alteração de senha indisponível</Text>
-              <Text style={styles.body}>O backend atual não oferece uma operação para trocar a senha. Para não exibir um formulário que não salvaria a alteração, esta ação fica desativada até existir suporte na API.</Text>
+              <Field label="Senha atual" placeholder="Digite sua senha atual" value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry maxLength={72} error={passwordErrors.currentPassword} />
+              <Field label="Nova senha" placeholder="Crie uma nova senha" value={newPassword} onChangeText={setNewPassword} secureTextEntry maxLength={72} helper="Use entre 8 e 72 caracteres e no máximo 72 bytes em UTF-8." error={passwordErrors.newPassword} />
+              <Field label="Confirmar nova senha" placeholder="Digite novamente a nova senha" value={confirmation} onChangeText={setConfirmation} secureTextEntry maxLength={72} error={passwordErrors.confirmation} />
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {success ? <Text style={styles.success}>{success}</Text> : null}
+              <Button title={changingPassword ? 'Alterando...' : 'Alterar senha'} onPress={() => void changePassword()} disabled={changingPassword} style={styles.button} />
             </View>
-            <Info text="A recuperação de senha também ainda não envia e-mail nesta versão." />
+            <Info text="Por segurança, todas as sessões desta conta serão encerradas após a alteração." />
           </>}
 
           {page === 'preferences' && <>

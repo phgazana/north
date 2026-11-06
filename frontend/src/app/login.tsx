@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { colors, typography } from '@/theme';
 import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,7 @@ import { useApp } from '@/context';
 
 export default function Login() {
   const r = useRouter();
+  const params = useLocalSearchParams<{ passwordChanged?: string }>();
   const { activateSession } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,6 +52,7 @@ export default function Login() {
 
         <Text style={styles.title}>Bem-vindo de volta</Text>
         <Text style={styles.sub}>Acesse sua conta para continuar.</Text>
+        {params.passwordChanged === '1' ? <Text style={styles.success}>Senha alterada. Entre novamente com sua nova senha.</Text> : null}
 
         <View style={styles.form}>
           <Field
@@ -101,7 +103,7 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.white },
-  page: { padding: 20, paddingBottom: 30 },
+  page: { width: '100%', maxWidth: 560, alignSelf: 'center', padding: 20, paddingBottom: 30 },
   back: { height: 42, width: 40, justifyContent: 'center' },
   title: { ...typography.h1, color: colors.navy, marginTop: 12 },
   sub: { ...typography.body2, color: colors.gray700, marginTop: 2, marginBottom: 20 },
@@ -109,6 +111,7 @@ const styles = StyleSheet.create({
   forgot: { alignItems: 'flex-end', marginTop: 7, marginBottom: 17 },
   link: { color: colors.blue, fontFamily: 'Inter-SemiBold' },
   error: { ...typography.caption, color: colors.error, marginBottom: 12 },
+  success: { ...typography.caption, color: colors.success, marginBottom: 12 },
   or: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 17 },
   line: { flex: 1, height: 1, backgroundColor: colors.gray200 },
   orText: { ...typography.caption, color: colors.gray500 },

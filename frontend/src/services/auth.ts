@@ -63,6 +63,13 @@ export const authService = {
     });
   },
 
+  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
+    await api<void>('/api/me/password', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
   async updatePreferences(data: { landingScreen: LandingScreen }): Promise<User> {
     return api<User>('/api/me/preferences', {
       method: 'PATCH',

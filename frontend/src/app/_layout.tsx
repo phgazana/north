@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
@@ -14,6 +14,7 @@ import { useApp } from '@/context';
 import { Button } from '@/components/ui/Button';
 import { colors, typography } from '@/theme';
 import { decideRouteAccess } from '@/utils/routeAccess';
+import { pageTitleFromSegments } from '@/utils/pageTitle';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,7 +45,14 @@ function RootNavigator() {
   const segments = useSegments();
   const { user, sessionLoading, sessionError, onboardingPending, landingScreen, refreshSession, dismissSessionError } = useApp();
   const route = segments.filter(segment => !segment.startsWith('(') && segment !== 'index').join('/');
+  const pageTitle = pageTitleFromSegments(segments);
   const decision = decideRouteAccess(route, !!user, onboardingPending, landingScreen);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.title = pageTitle;
+    }
+  }, [pageTitle]);
 
   useEffect(() => {
     if (!sessionLoading && !sessionError && decision.action === 'redirect') {

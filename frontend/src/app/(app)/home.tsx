@@ -49,7 +49,7 @@ export default function Home() {
       <Pressable style={styles.month} onPress={() => router.push(`/mes/${encodeURIComponent(selectedMonthLabel)}` as any)}>
         <Text style={styles.monthText}>{selectedMonthLabel}</Text><Icon name="chevron-down" size={18}/>
       </Pressable>
-      <Text style={styles.greet}>Olá, {user?.name?.trim().split(/\\s+/)[0] || "por aqui"}</Text>
+      <Text style={styles.greet}>Olá, {user?.name?.trim().split(/\s+/)[0] || "por aqui"}</Text>
       <Text style={styles.subtitle}>Aqui está o seu panorama do mês.</Text>
       <Pressable onPress={() => router.push('/meta/atual' as any)}>
         <Card style={styles.overview}>

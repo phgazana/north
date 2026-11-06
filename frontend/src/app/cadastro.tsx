@@ -14,6 +14,7 @@ import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 import { authService } from '@/services/auth';
 import { useApp } from '@/context';
+import { passwordLengthError } from '@/utils/passwordChange';
 
 export default function Cadastro() {
   const r = useRouter();
@@ -60,12 +61,12 @@ export default function Cadastro() {
     if (!password) {
       setPasswordError('Informe uma senha.');
       hasError = true;
-    } else if (password.length < 8) {
-      setPasswordError('A senha precisa ter pelo menos 8 caracteres.');
-      hasError = true;
-    } else if (password.length > 72) {
-      setPasswordError('A senha deve ter até 72 caracteres.');
-      hasError = true;
+    } else {
+      const passwordLengthProblem = passwordLengthError(password);
+      if (passwordLengthProblem) {
+        setPasswordError(passwordLengthProblem);
+        hasError = true;
+      }
     }
 
     if (hasError) return;
@@ -137,7 +138,7 @@ export default function Cadastro() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            helper="Mínimo de 8 caracteres."
+            helper="8 a 72 caracteres e no máximo 72 bytes em UTF-8."
             error={passwordError}
           />
         </View>
@@ -188,6 +189,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   page: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
     paddingHorizontal: 20,
     paddingBottom: 30,
   },

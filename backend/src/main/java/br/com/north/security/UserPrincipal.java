@@ -13,11 +13,13 @@ public class UserPrincipal implements UserDetails {
     private final String nome;
     private final String email;
     private final String passwordHash;
-    public UserPrincipal(UUID id, String nome, String email, String passwordHash) {
-        this.id = id; this.nome = nome; this.email = email; this.passwordHash = passwordHash;
+    private final int tokenVersion;
+    public UserPrincipal(UUID id, String nome, String email, String passwordHash, int tokenVersion) {
+        this.id = id; this.nome = nome; this.email = email; this.passwordHash = passwordHash; this.tokenVersion = tokenVersion;
     }
-    public static UserPrincipal from(Usuario user) { return new UserPrincipal(user.getId(), user.getNome(), user.getEmail(), user.getSenhaHash()); }
+    public static UserPrincipal from(Usuario user) { return new UserPrincipal(user.getId(), user.getNome(), user.getEmail(), user.getSenhaHash(), user.getTokenVersion()); }
     public UUID getId() { return id; }
+    public int getTokenVersion() { return tokenVersion; }
     public String getNome() { return nome; }
     public String getEmail() { return email; }
     @Override public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(new SimpleGrantedAuthority("ROLE_USER")); }

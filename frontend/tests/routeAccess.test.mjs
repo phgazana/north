@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { decideRouteAccess } from '../src/utils/routeAccess.ts';
+import { pageTitleFromSegments } from '../src/utils/pageTitle.ts';
 
 test('redirects unauthenticated users away from private routes', () => {
   assert.deepEqual(decideRouteAccess('home', false, false, 'home'), {
@@ -47,4 +48,35 @@ test('sends completed users away from onboarding to their selected landing scree
 test('allows authenticated users to use normal app routes', () => {
   assert.deepEqual(decideRouteAccess('home', true, false, 'home'), { action: 'allow' });
   assert.deepEqual(decideRouteAccess('meta/gerenciar', true, false, 'home'), { action: 'allow' });
+});
+
+test('maps direct Expo Router segments to NORTH section titles', () => {
+  const cases = [
+    [[], 'NORTH | Início'],
+    [['login'], 'NORTH | Entrar'],
+    [['cadastro'], 'NORTH | Criar conta'],
+    [['recuperar-acesso'], 'NORTH | Recuperar acesso'],
+    [['(app)', 'home'], 'NORTH | Início'],
+    [['(app)', 'atividades'], 'NORTH | Atividades'],
+    [['(app)', 'historico'], 'NORTH | Histórico'],
+    [['(app)', 'conta'], 'NORTH | Conta'],
+    [['(app)', 'conta', 'preferences'], 'NORTH | Conta'],
+    [['(app)', 'mes', '[mes]'], 'NORTH | Histórico'],
+  ];
+
+  for (const [segments, title] of cases) {
+    assert.equal(pageTitleFromSegments(segments), title);
+  }
+});
+
+test('updates the section title as navigation segments change', () => {
+  const navigation = [
+    [['login'], 'NORTH | Entrar'],
+    [['(app)', 'home'], 'NORTH | Início'],
+    [['(app)', 'atividades'], 'NORTH | Atividades'],
+    [['(app)', 'historico'], 'NORTH | Histórico'],
+    [['(app)', 'conta'], 'NORTH | Conta'],
+  ];
+
+  assert.deepEqual(navigation.map(([segments]) => pageTitleFromSegments(segments)), navigation.map(([, title]) => title));
 });

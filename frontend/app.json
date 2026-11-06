@@ -23,7 +23,8 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "favicon": "./assets/images/north-app-icon.png"
     },
     "plugins": [
       "expo-router",
